@@ -42,7 +42,11 @@ def root():
     resp.headers['Content-Type'] = 'image/png'
 
     return resp
-    
+
+
+application = app
+
+
 if __name__ == '__main__':
     app.debug = True
     app.run()
