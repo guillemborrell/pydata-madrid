@@ -1,5 +1,4 @@
 import numpy as np
-import time
 import pylab as plt
 from matplotlib import cm
 from itertools import product
@@ -12,14 +11,15 @@ def julia_iteration(z, c, maxiter=256):
     return n
 
 def julia_set(w, h, c, maxiter=256):
-    start = time.perf_counter()
     m = np.empty((h, w), dtype=np.uint8)
-    for i, j in product(range(w), range(h)):
+    for j, i in product(range(h), range(w)):
         z = (i-w/2)/(h/2) + (j-h/2)/(h/2)*1j
         m[j,i] = julia_iteration(z, c, maxiter)
 
-    print(time.perf_counter()-start)
     return m
+
+def julia_set_fast(w, h, c, maxiter=256):
+    pass
 
 def plot_julia(w, h, cre, cim, cmap):
     m = julia_set(w, h, cre+cim*1j)

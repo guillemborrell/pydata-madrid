@@ -4,7 +4,9 @@ from PIL import Image
 from matplotlib import cm
 from itertools import product
 import numpy as np
+import time
 import io
+import julia_fast
 
 app = Flask(__name__)
 
@@ -25,7 +27,10 @@ def root():
     cmap = request.args.get('cmap')
     if not cmap: cmap = 'inferno'
 
-    m = julia_set(w, h, cre + cim*1j)
+    start = time.perf_counter()
+    m = julia_fast.julia_set(w, h, cre + cim*1j)
+    print(time.perf_counter()-start)
+    
     image_data = np.empty((h,w,3), dtype=np.uint8)
     colors = 255*np.array(getattr(cm, cmap).colors)
 
