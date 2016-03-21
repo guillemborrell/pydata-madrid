@@ -1,4 +1,3 @@
-from cython.view cimport array as cvarray
 import numpy as np
 
 
