@@ -52,7 +52,7 @@ def gen_image_stream(key, w, h, cre, cim, cmap):
     stream = io.BytesIO()
     image.save(stream, format='png')
     stream.seek(io.SEEK_SET)
-    print('Made the image in {} seconds'.format(end))
+    print('Made {} x {} image in {} seconds'.format(w, h, end))
     store[key] = stream.read()
 
 
@@ -63,26 +63,25 @@ def root():
     img_thread.daemon = True
     img_thread.start()
 
-    return '<http><body><a href="/image/{}">here</a></body></http>'.format(key)
+    return '<http><body>' + \
+           '<a href="/image/{}">click here</a>'.format(key) + \
+           '</body></http>'
 
 
 @app.route('/image/<key>')
 def image(key):
-    has_response = False
-    for i in range(120):
-        image = store.get(key)
-        if image:
-            resp = make_response(image)
-            resp.headers['Content-Type'] = 'image/png'
-            has_response = True
+    image = store.get(key)
+    if image:
+        resp = make_response(image)
+        resp.headers['Content-Type'] = 'image/png'
+        has_response = True
+        
+    else:
+        resp = '<href><body><a href="./{}">Not yet.</a></body></html>'.format(key)
 
-        else:
-            resp = 'Not ready yet'
-            time.sleep(1)
-
-    if not has_response: resp = 'Something wrong happened'
     return resp
-    
+
+
 application = app
 
 
