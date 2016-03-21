@@ -18,9 +18,6 @@ def julia_set(w, h, c, maxiter=256):
 
     return m
 
-def julia_set_fast(w, h, c, maxiter=256):
-    pass
-
 def plot_julia(w, h, cre, cim, cmap):
     m = julia_set(w, h, cre+cim*1j)
     colors = getattr(cm, cmap)
