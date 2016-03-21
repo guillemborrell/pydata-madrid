@@ -36,6 +36,8 @@ def parse_request():
 
 
 def gen_image(key, w, h, cre, cim, cmap):
+    # This is well designed, but it is not responsive because
+    # of the gil.
     start = time.perf_counter()
     m = julia_fast.julia_set(w, h, cre + cim*1j)
     end = time.perf_counter()-start
