@@ -34,7 +34,7 @@ def root():
     image_data = np.empty((h,w,3), dtype=np.uint8)
     colors = 255*np.array(getattr(cm, cmap).colors)
 
-    for i,j in product(range(w), range(h)):
+    for j,i in product(range(h), range(w)):
         image_data[j,i,:] = colors[m[j,i]]
 
     image = Image.fromarray(image_data, mode='RGB')
