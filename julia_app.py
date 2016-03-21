@@ -9,11 +9,10 @@ import numpy as np
 import time
 import io
 import julia_fast
+import zmq
 
-
+zmq_context = zmq.Context.instance()
 app = Flask(__name__)
-
-
 store = {}
 
 
@@ -36,7 +35,7 @@ def parse_request():
     return w, h, cre, cim, cmap
 
 
-def gen_image_stream(key, w, h, cre, cim, cmap):
+def gen_image(key, w, h, cre, cim, cmap):
     start = time.perf_counter()
     m = julia_fast.julia_set(w, h, cre + cim*1j)
     end = time.perf_counter()-start
@@ -56,10 +55,26 @@ def gen_image_stream(key, w, h, cre, cim, cmap):
     store[key] = stream.read()
 
 
+def remote_image(key, w, h, cre, cim, cmap):
+    start = time.perf_counter()
+    req_socket = zmq_context.socket(zmq.REQ)
+    req_socket.connect('tcp://127.0.0.1:5555')
+    print('Trying to send message')
+    message = {'key': key,
+               'w': w,
+               'h': h,
+               'cre': cre,
+               'cim': cim,
+               'cmap': cmap}
+    req_socket.send_pyobj(message)
+    store[key]= req_socket.recv()
+    req_socket.close()
+    
+
 @app.route('/')
 def root():
     key = str(uuid4())
-    img_thread = Thread(target=gen_image_stream, args=(key,*parse_request()))
+    img_thread = Thread(target=remote_image, args=(key,*parse_request()))
     img_thread.daemon = True
     img_thread.start()
 
@@ -74,7 +89,7 @@ def image(key):
     if image:
         resp = make_response(image)
         resp.headers['Content-Type'] = 'image/png'
-        has_response = True
+        del store[key]
         
     else:
         resp = '<href><body><a href="./{}">Not yet.</a></body></html>'.format(key)
