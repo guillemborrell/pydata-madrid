@@ -6,6 +6,7 @@ from itertools import product
 from threading import Thread
 from uuid import uuid4
 import numpy as np
+import shelve
 import time
 import io
 import julia_fast
@@ -13,7 +14,7 @@ import zmq
 
 zmq_context = zmq.Context.instance()
 app = Flask(__name__)
-store = {}
+store = shelve.open('example.dat')
 
 
 def parse_request():
@@ -69,7 +70,7 @@ def remote_image(key, w, h, cre, cim, cmap):
                'cim': cim,
                'cmap': cmap}
     req_socket.send_pyobj(message)
-    store[key]= req_socket.recv()
+    store[key] = req_socket.recv()
     req_socket.close()
     
 
