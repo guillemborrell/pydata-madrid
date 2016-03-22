@@ -1,15 +1,22 @@
 from PIL import Image
 from matplotlib import cm
 from itertools import product
+from uuid import uuid4
 import numpy as np
 import julia_fast
 import zmq
 import io
 import time
+import pickle
 
 zmq_context = zmq.Context.instance()
-recv_socket = zmq_context.socket(zmq.REP)
-recv_socket.bind('tcp://127.0.0.1:5555')
+# recv_socket = zmq_context.socket(zmq.REP)
+# recv_socket.bind('tcp://127.0.0.1:5555')
+
+recv_socket = zmq_context.socket(zmq.REQ)
+recv_socket.identity = str(uuid4()).encode('utf-8')
+recv_socket.connect('tcp://127.0.0.1:5556')
+
 
 def gen_image(key, w, h, cre, cim, cmap):
     start = time.perf_counter()
@@ -32,7 +39,14 @@ def gen_image(key, w, h, cre, cim, cmap):
 
 
 if __name__ == '__main__':
-    print('Listening to 127.0.0.1:5555')
+    print('Listening...')
+    recv_socket.send(b'READY')
+    
     while True:
-        message = recv_socket.recv_pyobj()
-        recv_socket.send(gen_image(**message))
+        # message = recv_socket.recv_pyobj()
+        client, empty, message = recv_socket.recv_multipart()
+        message = pickle.loads(message)
+        image = gen_image(**message)
+        
+        # recv_socket.send(gen_image(**message))
+        recv_socket.send_multipart([client, empty, image])

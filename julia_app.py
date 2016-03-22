@@ -61,6 +61,7 @@ def gen_image(key, w, h, cre, cim, cmap):
 def remote_image(key, w, h, cre, cim, cmap):
     start = time.perf_counter()
     req_socket = zmq_context.socket(zmq.REQ)
+    req_socket.identity = str(uuid4()).encode('utf-8')
     req_socket.connect('tcp://127.0.0.1:5555')
     print('Trying to send message')
     message = {'key': key,
