@@ -25,3 +25,10 @@ function julia_set(w::Int64, h::Int64, c, maxiter::Int64)
     end
     return m
 end
+
+function gen_image(key::AbstractString, w::Int64, h::Int64, cre::Float64, cri::Float64, cmap::AbstractString)
+    tStart = time()
+
+    tStop = time()
+    println("Made ", w, " x ", h, " image in ", tStop, " seconds")
+    return
