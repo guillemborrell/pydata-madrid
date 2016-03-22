@@ -7,7 +7,7 @@ import julia_fast
 import zmq
 import io
 import time
-import pickle
+import json
 
 zmq_context = zmq.Context.instance()
 # recv_socket = zmq_context.socket(zmq.REP)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     while True:
         # message = recv_socket.recv_pyobj()
         client, empty, message = recv_socket.recv_multipart()
-        message = pickle.loads(message)
+        message = json.loads(message.decode('utf-8'))
         image = gen_image(**message)
         
         # recv_socket.send(gen_image(**message))

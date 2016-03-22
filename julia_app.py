@@ -70,7 +70,7 @@ def remote_image(key, w, h, cre, cim, cmap):
                'cre': cre,
                'cim': cim,
                'cmap': cmap}
-    req_socket.send_pyobj(message)
+    req_socket.send_json(message)
     store[key] = req_socket.recv()
     req_socket.close()
     
