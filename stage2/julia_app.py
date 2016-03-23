@@ -14,7 +14,7 @@ def parse_request():
     if not cre: cre = -0.8
     else: cre = float(cre)
     cim = request.args.get('cim')
-    if not cim: cim = -0.8
+    if not cim: cim = 0.156
     else: cim = float(cim)
     cmap = request.args.get('cmap')
     if not cmap: cmap = 'inferno'
