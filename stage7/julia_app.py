@@ -1,17 +1,12 @@
 from flask import Flask, request, make_response
-import julia_fast
-from PIL import Image
-from matplotlib import cm
-from itertools import product
 from threading import Thread
 from uuid import uuid4
-import numpy as np
-import time
-import io
 import shelve
+import zmq
 
 application = Flask(__name__)
 store = shelve.open('example.dat')
+context = zmq.Context.instance()
 
 #API
 def parse_request():
@@ -33,28 +28,26 @@ def parse_request():
     return w, h, cre, cim, cmap
 
 
-def gen_image(key, w, h, cre, cim, cmap):
-    start = time.perf_counter()
-    m = julia_fast.julia_set(w, h, cre + cim*1j)
-    end = time.perf_counter()-start
-    print('Made a {} x {} image in {} s'.format(w, h, end))
+def remote_image(key, w, h, cre, cim, cmap):
+    socket = context.socket(zmq.REQ)
+    socket.identity = str(uuid4()).encode('utf-8')
+    socket.connect('tcp://127.0.0.1:5555')
 
-    image_data = np.empty((h,w,3), dtype=np.uint8)
-    colors = 255*np.array(getattr(cm,cmap).colors)
-    for j, i in product(range(h), range(w)):
-        image_data[j, i, :] = colors[m[j,i]]
-
-    image = Image.fromarray(image_data, mode='RGB')
-
-    stream = io.BytesIO()
-    image.save(stream, format='png')
-    stream.seek(io.SEEK_SET)
-    store[key] = stream.read()
+    message = {'key': key,
+               'w': w,
+               'h': h,
+               'cre': cre,
+               'cim': cim,
+               'cmap': cmap}
+    socket.send_json(message)
+    store[key] = socket.recv()
+    socket.close()
+               
 
 @application.route('/')
 def root():
     key = str(uuid4())
-    img_thread = Thread(target=gen_image, args=(key, *parse_request()))
+    img_thread = Thread(target=remote_image, args=(key, *parse_request()))
     img_thread.daemon = True
     img_thread.start()
 
