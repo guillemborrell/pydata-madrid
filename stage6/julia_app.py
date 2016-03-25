@@ -3,11 +3,15 @@ import julia_fast
 from PIL import Image
 from matplotlib import cm
 from itertools import product
+from threading import Thread
+from uuid import uuid4
 import numpy as np
 import time
 import io
+import shelve
 
 application = Flask(__name__)
+store = shelve.open('example.dat')
 
 #API
 def parse_request():
@@ -29,7 +33,7 @@ def parse_request():
     return w, h, cre, cim, cmap
 
 
-def gen_image(w, h, cre, cim, cmap):
+def gen_image(key, w, h, cre, cim, cmap):
     start = time.perf_counter()
     m = julia_fast.julia_set(w, h, cre + cim*1j)
     end = time.perf_counter()-start
@@ -45,13 +49,31 @@ def gen_image(w, h, cre, cim, cmap):
     stream = io.BytesIO()
     image.save(stream, format='png')
     stream.seek(io.SEEK_SET)
-    return stream.read()
+    store[key] = stream.read()
 
 @application.route('/')
 def root():
-    image = gen_image(*parse_request())
-    resp = make_response(image)
-    resp.headers['Content-Type'] = 'image/png'
+    key = str(uuid4())
+    img_thread = Thread(target=gen_image, args=(key, *parse_request()))
+    img_thread.daemon = True
+    img_thread.start()
+
+    return '<http><body>' +\
+        '<a href="/image/{}">click here</a>'.format(key) +\
+        '</body></http>'
+
+
+@application.route('/image/<key>')
+def image(key):
+    image = store.get(key)
+    if image:
+        resp = make_response(image)
+        resp.headers['Content-Type'] = 'image/png'
+        del store[key]
+    else:
+        resp = '<html><body>' + \
+               '<a href="./{}>not yet</a>'.format(key) + \
+               '</body></html>'
 
     return resp
 
