@@ -72,7 +72,7 @@ def image(key):
         del store[key]
     else:
         resp = '<html><body>' + \
-               '<a href="./{}>not yet</a>'.format(key) + \
+               '<a href="./{}">not yet</a>'.format(key) + \
                '</body></html>'
 
     return resp
