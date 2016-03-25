@@ -42,6 +42,7 @@ def remote_image(key, w, h, cre, cim, cmap):
     socket.send_json(message)
     store[key] = socket.recv()
     socket.close()
+    store.sync()
                
 
 @application.route('/')
@@ -58,11 +59,13 @@ def root():
 
 @application.route('/image/<key>')
 def image(key):
+    store.sync()
     image = store.get(key)
     if image:
         resp = make_response(image)
         resp.headers['Content-Type'] = 'image/png'
         del store[key]
+        store.sync()
     else:
         resp = '<html><body>' + \
                '<a href="./{}">not yet</a>'.format(key) + \
