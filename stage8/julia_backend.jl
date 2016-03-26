@@ -272,28 +272,6 @@ function julia_iteration(z, c, maxiter::UInt8)
     return maxiter
 end
 
-function colorppmwrite(img, file::AbstractString)
-    s = open(file, "w")
-    write(s, "P6\n")
-    n, m = size(img)
-    write(s, "$m $n 255\n")
-    for i=1:n, j=1:m, k=1:3
-        write(s, UInt8(img[i,j,k]))
-    end
-    close(s)
-end
-
-function ppmprocess(img, io)
-    write(io, "P6\n")
-    n, m = size(img)
-    write(io, "$m $n 255\n")
-    for i=1:n, j=1:m, k=1:3
-        write(io, UInt8(img[i,j,k]))
-    end
-    seekstart(io)
-    return takebuf_array(io)
-end
-
 function image_process(arr, io)
     img = colorim(arr)
     s = Stream(format"PNG", io) 
