@@ -316,26 +316,41 @@ function julia_set(w::Int64, h::Int64, c, maxiter::UInt8)
 end
 
 ctx = Context()
-socket = Socket(ctx, REP)
+socket = Socket(ctx, REQ)
+ZMQ.set_identity(socket, string(Base.Random.uuid4()))
 ZMQ.connect(socket, "tcp://127.0.0.1:5556")
-# Block here
+
+ZMQ.send(socket, "READY")
+println("Listening...")
 
 while true
-    println("Listening...")
+    msg = ZMQ.recv(socket)
+    msg_stream = convert(IOStream, msg)
+    seekstart(msg_stream)
+    client = takebuf_string(msg_stream)
+
+    msg = ZMQ.recv(socket)
+    msg_stream = convert(IOStream, msg)
+    seekstart(msg_stream)
+    empty = takebuf_string(msg_stream)
+
     msg = ZMQ.recv(socket)
     msg_stream = convert(IOStream, msg)
     seekstart(msg_stream)
     request = JSON.parse(msg_stream)
-
+    
+    key = request["key"]
     w = request["w"]
     h = request["h"]
     cre = request["cre"]
     cim = request["cim"]
     c = complex(cre, cim)
 
-    m = julia_set(w, h, c, 255)
+    m = julia_set(w, h, c, UInt8(255))
 
     io = IOBuffer()
+    ZMQ.send(socket, Message(client), ZMQ.SNDMORE)
+    ZMQ.send(socket, Message(empty), ZMQ.SNDMORE)
     ZMQ.send(socket, Message(image_process(m, io)))
     close(io)
 end
