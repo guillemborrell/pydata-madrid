@@ -14,7 +14,7 @@ request = {"w": 4000,
 socket.send(json.dumps(request).encode('utf-8'))
 m = socket.recv()
 
-with open("something.ppm", "wb") as f:
+with open("something.png", "wb") as f:
     f.write(m)
 
 

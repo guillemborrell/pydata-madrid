@@ -1,4 +1,6 @@
 using ZMQ
+using Images
+using FileIO
 import JSON
 
 colors = [[0.001462  0.000466  0.013866]; 
@@ -292,6 +294,14 @@ function ppmprocess(img, io)
     return takebuf_array(io)
 end
 
+function image_process(arr, io)
+    img = colorim(arr)
+    s = Stream(format"PNG", io) 
+    save(s, img)
+    seekstart(io)
+    return takebuf_array(io)
+end
+
 ctx = Context()
 socket = Socket(ctx, REP)
 ZMQ.connect(socket, "tcp://127.0.0.1:5555")
@@ -324,5 +334,5 @@ println("Made a $w x $h image in  $tStop seconds");
 # write the ppm-file
 # colorppmwrite(m, "julia.ppm")
 io = IOBuffer()
-ZMQ.send(socket, Message(ppmprocess(m, io)))
+ZMQ.send(socket, Message(image_process(m, io)))
 close(io)
