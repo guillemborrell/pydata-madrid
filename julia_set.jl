@@ -260,12 +260,10 @@ colors = [[0.001462  0.000466  0.013866];
 
 colors = round(UInt8, 255*colors)
 
-function julia(z, maxiter::Int64)
-    # c=-0.8+0.156im
-    c = 0.3 + 0.023im
+function julia_iteration(z, c, maxiter::UInt8)
     for n = 1:maxiter
         if abs(z) > 2
-            return n-1
+            return n
         end
         z = z^2 + c
     end
@@ -304,28 +302,24 @@ msg_stream = convert(IOStream, msg)
 seekstart(msg_stream)
 request = JSON.parse(msg_stream)
 
-
-# create a 1000x500 Array for our picture
 w = request["w"]
 h = request["h"]
-println("w ", w)
-println("h ", h)
+cre = request["cre"]
+cim = request["cim"]
+c = complex(cre, cim)
 m = Array(UInt8, h, w, 3)
   
 # time measurements
 print("starting...\n")
 tStart=time()
   
-# for every pixel
 for y=1:h, x=1:w
-    # translate numbers [1:w, 1:h] -> -2:2 + -1:1 im
-    c = complex((x-w/2)/(h/2), (y-h/2)/(h/2))
-    # call our julia function
-    m[y,x,:] = colors[julia(c, 255),:]
+    z = complex((x-w/2)/(h/2), (y-h/2)/(h/2))
+    m[y,x,:] = colors[julia_iteration(z, c, convert(UInt8,255)),:]
 end
   
-tStop = time()
-print("done. took ", tStop-tStart, " seconds\n");
+tStop = time()-tStart
+println("Made a $w x $h image in  $tStop seconds");
 
 # write the ppm-file
 # colorppmwrite(m, "julia.ppm")
