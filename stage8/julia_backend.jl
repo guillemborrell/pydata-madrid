@@ -1,3 +1,10 @@
+Pkg.add("ZMQ")
+Pkg.add("Images")
+Pkg.add("FileIO")
+Pkg.add("JSON")
+Pkg.add("ImageMagick")
+Pkg.update()
+
 using ZMQ
 using Images
 using FileIO
